@@ -70,7 +70,7 @@ const App = () => {
                     ></textarea>
                 </div>
                 <div className="max-w-2xl">
-                    <p className="mb-4 text-xl">
+                    <p className="mb-4 text-xl px-4">
                         Практически все буквы подобраны идеально и будут найдены
                         интуитивно. Есть лишь{" "}
                         <span
