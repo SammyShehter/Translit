@@ -171,7 +171,6 @@ export function translitV1(textEl: any, key: string) {
 
     switch (true) {
         case latSuperSpec.has(superSpecCase):
-            console.log(superSpecCase)
             workString = simpleTranslit(
                 workString,
                 position - 3,

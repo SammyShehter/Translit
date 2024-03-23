@@ -1,11 +1,7 @@
-import { translitMac } from "./translit_mac"
+import {translitMac} from "./translit_mac"
 import {translitV1} from "./translit_v1"
 
-const htmlElement = document.documentElement
-
-export const toggleDarkMode = () => {
-    htmlElement.classList.toggle("dark")
-}
+export const versions = {0: "v1", 1: "mac"}
 
 export function translit(version: string, textEl: any, key: string) {
     switch (version) {

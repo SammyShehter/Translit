@@ -1,80 +1,168 @@
-import {useRef, useState} from "react"
-import {toggleDarkMode, translit} from "./utils"
+import {useEffect, useRef, useState} from "react"
+import {translit, versions} from "./utils/common"
 import Modal from "./components/Modal"
+import {translations} from "./utils/translations"
+import type {Language, Versions} from "./types/common"
 
 const App = () => {
-    const [darkMode, setDarkMode] = useState(false)
+    const [darkMode, setDarkMode] = useState(
+        () => localStorage.getItem("theme") === "dark"
+    )
+    const [translitVersion, setTranslitVersion] = useState(
+        () => localStorage.getItem("version") || "v1"
+    )
+    const [currentLanguage, setCurrentLanguage] = useState<Language>(
+        () => (localStorage.getItem("lang") as Language) || "en"
+    )
+
     const [showModal, setShowModal] = useState(false)
-    const [translitVersion, setTranslitVersion] = useState("v1")
+    const [textAreaInput, setTextAreaInput] = useState("")
+    const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
-    const textAreaRef = useRef(null)
+    useEffect(() => {
+        darkMode
+            ? document.documentElement.classList.add("dark")
+            : document.documentElement.classList.remove("dark")
+    }, [darkMode])
 
-    const modeSwitch = () => {
-        setDarkMode(!darkMode)
-        toggleDarkMode()
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (textAreaRef.current) {
+                localStorage.setItem("text", textAreaRef.current.value)
+            }
+        }, 1000)
+
+        return () => clearTimeout(timeout)
+    }, [textAreaInput])
+
+    const toggleDarkMode = () => {
+        setDarkMode((prevMode) => {
+            const newMode = !prevMode
+            newMode
+                ? document.documentElement.classList.add("dark")
+                : document.documentElement.classList.remove("dark")
+            localStorage.setItem("theme", newMode ? "dark" : "light")
+            return newMode
+        })
     }
 
-    const runTranslit = (e: any) => {
-        translit(translitVersion, textAreaRef, e.nativeEvent.data)
+    const changeLanguage = () => {
+        setCurrentLanguage((prevLang) => {
+            const newLang = prevLang === "en" ? "ru" : "en"
+            localStorage.setItem("lang", newLang)
+            return newLang
+        })
+    }
+
+    const changeVersion = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newIndex = `${e.target.selectedIndex}` as unknown as Versions
+        const newVer = versions[newIndex]
+        setTranslitVersion((_) => {
+            localStorage.setItem("version", newVer)
+            return newVer
+        })
+    }
+
+    const runTranslit = (e: React.FormEvent<HTMLTextAreaElement>) => {
+        const eventData = e.nativeEvent as InputEvent
+        translit(translitVersion, textAreaRef, eventData.data!)
+        if (textAreaRef.current) {
+            setTextAreaInput(textAreaRef.current.value)
+        }
+    }
+
+    const copyToClipboard = () => {
+        const textArea = textAreaRef.current
+        if (textArea) {
+            textArea.select()
+            navigator.clipboard.writeText(textArea.value)
+        }
     }
 
     return (
-        <div className="h-screen dark:text-white bg-gray-100 text-gray-900 dark:bg-black transition-all delay-300">
+        <div className="h-screen dark:text-white bg-gray-100 text-gray-900 dark:bg-black transition-all delay-100">
             <div
                 className={`flex flex-col items-center justify-center font-sans ${
                     showModal && "blur-lg"
                 }`}
             >
-                <div className="mb-8 p-4 w-full bg-orange-300 dark:bg-orange-400 delay-300">
-                    <h1 className="text-4xl font-bold text-center">Транслит</h1>
+                <div className="mb-8 p-4 w-full bg-orange-300 dark:bg-orange-400">
+                    <h1 className="text-4xl font-bold text-center">
+                        {translations[currentLanguage].title}
+                    </h1>
                 </div>
                 <div className="mb-8 w-full px-4">
                     <div className="flex justify-between">
                         <div>
-                            <span
-                                onClick={() => setTranslitVersion("mac")}
-                                className="pr-2 text-black dark:text-white hover:underline cursor-pointer delay-300"
-                            >
-                                Mac
+                            <span className="pr-2 text-black dark:text-white hover:underline cursor-pointer delay-100">
+                                {translations[currentLanguage].translitVersion}:
                             </span>
-                            <span
-                                onClick={() => setTranslitVersion("v1")}
-                                className="pr-2 text-black dark:text-white hover:underline cursor-pointer delay-300"
+                            <select
+                                value={translitVersion}
+                                onChange={changeVersion}
+                                className="hover:underline cursor-pointer delay-100 bg-gray-100 dark:bg-black"
                             >
-                                V1
-                            </span>
+                                <option value="v1">V1</option>
+                                <option value="mac">Mac</option>
+                            </select>
                         </div>
-                        <div>
+                        <div className="max-md:hidden">
                             <span
-                                onClick={modeSwitch}
-                                className="pr-2 text-black dark:text-white hover:underline cursor-pointer delay-300"
+                                onClick={() => setShowModal(true)}
+                                className="text-black dark:text-white hover:underline cursor-pointer delay-100"
                             >
-                                {darkMode ? "Light Mode" : "Dark Mode"}
+                                {translations[currentLanguage].modalTitle}
                             </span>
                         </div>
                     </div>
                     <textarea
                         ref={textAreaRef}
                         onInput={runTranslit}
-                        className="w-full h-64 p-4 rounded-mdbg-gray-800 dark:text-white dark:bg-gray-900 text-gray-900 border border-orange-300 dark:border-orange500 delay-300"
+                        defaultValue={localStorage.getItem("text") || ""}
+                        className="w-full h-64 p-4 rounded-mdbg-gray-800 dark:text-white dark:bg-gray-900 text-gray-900 border border-orange-300 dark:border-orange500 delay-100"
                     ></textarea>
-                </div>
-                <div className="max-w-2xl">
-                    <p className="mb-4 text-xl px-4">
-                        Практически все буквы подобраны идеально и будут найдены
-                        интуитивно. Есть лишь{" "}
-                        <span
-                            className="cursor-pointer underline"
-                            onClick={() => setShowModal(true)}
-                        >
-                            некоторые моменты
-                        </span>{" "}
-                        которые стоит изучить перед непосредственным
-                        пользованием данным транслитератором
-                    </p>
+                    <div className="flex justify-between max-md:flex-col">
+                        <div className="max-md:flex max-md:flex-col">
+                            <span
+                                onClick={copyToClipboard}
+                                className="text-black dark:text-white hover:underline cursor-pointer delay-100 max-md:pb-7"
+                            >
+                                {translations[currentLanguage].copyToClipboard}
+                            </span>
+                        </div>
+                        <div className="max-md:flex max-md:flex-col">
+                            <span
+                                onClick={toggleDarkMode}
+                                className="pr-2 text-black dark:text-white hover:underline cursor-pointer delay-100 max-md:mb-4"
+                            >
+                                {translations[currentLanguage].changeTheme}{" "}
+                                {darkMode
+                                    ? translations[currentLanguage].lightMode
+                                    : translations[currentLanguage].darkMode}
+                            </span>
+                            <span className="max-md:hidden">|</span>
+                            <span
+                                onClick={changeLanguage}
+                                className="pl-2 text-black dark:text-white hover:underline cursor-pointer delay-100 max-md:p-0 max-md:mb-4"
+                            >
+                                {translations[currentLanguage].changeLanguage}
+                            </span>
+                            <span
+                                onClick={() => setShowModal(true)}
+                                className="text-black dark:text-white hover:underline cursor-pointer delay-100 hidden max-md:block"
+                            >
+                                {translations[currentLanguage].modalTitle}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            {showModal && <Modal setShowModal={setShowModal}/>}
+            {showModal && (
+                <Modal
+                    setShowModal={setShowModal}
+                    translitVersion={translitVersion}
+                />
+            )}
         </div>
     )
 }
