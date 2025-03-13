@@ -65,9 +65,15 @@ const App = () => {
 
     const runTranslit = (e: React.FormEvent<HTMLTextAreaElement>) => {
         const eventData = e.nativeEvent as InputEvent
-        translit(translitVersion, textAreaRef, eventData.data!)
-        if (textAreaRef.current) {
-            setTextAreaInput(textAreaRef.current.value)
+        const textArea = textAreaRef.current
+
+        if (textArea) {
+            const start = textArea.selectionStart
+            const end = textArea.selectionEnd
+
+            translit(translitVersion, textAreaRef, eventData.data!)
+            setTextAreaInput(textArea.value)
+            textArea.setSelectionRange(start, end)
         }
     }
 
