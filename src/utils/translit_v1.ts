@@ -151,10 +151,9 @@ const latSuperSpec = new Map([
 function simpleTranslit(
     workString: string,
     index: number,
-    char: string = "xxx",
+    char: string,
     offset: number = 0
 ): string {
-    if (char === "xxx") return ""
     return (
         workString.substring(0, index) +
         char +
@@ -174,7 +173,7 @@ export function translitV1(textEl: any, key: string) {
             workString = simpleTranslit(
                 workString,
                 position - 3,
-                latSuperSpec.get(superSpecCase),
+                latSuperSpec.get(superSpecCase)!,
                 1
             )
             break
@@ -182,7 +181,7 @@ export function translitV1(textEl: any, key: string) {
             workString = simpleTranslit(
                 workString,
                 position - 2,
-                latSpec.get(specCase),
+                latSpec.get(specCase)!,
                 1
             )
             break
@@ -190,7 +189,7 @@ export function translitV1(textEl: any, key: string) {
             workString = simpleTranslit(
                 workString,
                 position - 1,
-                latSimple.get(key)
+                latSimple.get(key)!
             )
             break
 

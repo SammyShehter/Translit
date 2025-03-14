@@ -1,4 +1,6 @@
-const latSimple = new Map([
+import { simpleTranslit } from "./common"
+
+export const latToKir = new Map([
     ["a", "а"],
     ["b", "б"],
     ["c", "ц"],
@@ -63,32 +65,16 @@ const latSimple = new Map([
     ["}", "Ж"],
     [`\\`, "э"],
     ["|", "Э"],
-
 ])
-
-function simpleTranslit(
-    workString: string,
-    index: number,
-    char: string = "xxx",
-    offset: number = 0
-): string {
-    if (char === "xxx") return ""
-    return (
-        workString.substring(0, index) +
-        char +
-        workString.substring(index + char.length + offset)
-    )
-}
 
 export function translitMac(textEl: any, key: string) {
     let position = textEl.current.selectionStart
     let workString = textEl.current.value
-
-    if (latSimple.has(key)) {
+    if (latToKir.has(key)) {
         workString = simpleTranslit(
             workString,
-            position - 1,
-            latSimple.get(key)
+            position - key.length,
+            latToKir.get(key)!
         )
     }
 

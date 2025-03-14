@@ -17,3 +17,15 @@ export function translit(version: string, textEl: any, key: string) {
             break
     }
 }
+
+export function simpleTranslit(
+    workString: string,
+    index: number,
+    char: string
+): string {
+    return (
+        workString.substring(0, index) +
+        char +
+        workString.substring(index + char.length)
+    )
+}

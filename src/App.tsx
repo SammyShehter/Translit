@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from "react"
 import {translit, versions} from "./utils/common"
 import Modal from "./components/Modal"
+import Letters from "./components/Letters"
 import {translations} from "./utils/translations"
 import type {Language, Versions} from "./types/common"
 
@@ -85,6 +86,20 @@ const App = () => {
         }
     }
 
+    const addLetterToTextArea = (letter: string) => {
+        if (textAreaRef.current) {
+            const textArea = textAreaRef.current
+            const start = textArea.selectionStart
+            const end = textArea.selectionEnd
+            const text = textArea.value
+
+            textArea.value = text.slice(0, start) + letter + text.slice(end)
+            setTextAreaInput(textArea.value)
+            textArea.setSelectionRange(start + 1, start + 1)
+            textArea.focus()
+        }
+    }
+
     return (
         <div className="h-screen dark:text-white bg-gray-100 text-gray-900 dark:bg-black transition-all delay-100">
             <div
@@ -97,6 +112,7 @@ const App = () => {
                         {translations[currentLanguage].title}
                     </h1>
                 </div>
+                <Letters addLetter={addLetterToTextArea} />
                 <div className="mb-8 w-full px-4">
                     <div className="flex justify-between">
                         <div>
